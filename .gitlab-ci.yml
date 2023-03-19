@@ -1,0 +1,77 @@
+# Environment variables.
+variables:
+  # AWS credentials. Required to provision resources.
+  # The credentials are stored in the GitLab project's variables.
+  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+  # Terraform and Terragrunt versions.
+  TERRAFORM_VERSION: "1.4.2"
+  TERRAGRUNT_VERSION: "0.45.0"
+
+# Before script.
+# This script runs before all stages and jobs.
+before_script:
+  # Install Terraform.
+  - echo "[Installing Terraform version ${TERRAFORM_VERSION}]"
+  - curl -LJO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+  - unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+  - mv terraform /usr/local/bin/
+  - chmod +x /usr/local/bin/terraform
+  - terraform version
+  # Install Terragrunt.
+  - echo "[Installing Terragrunt version ${TERRAGRUNT_VERSION}]"
+  - curl -LJO https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+  - chmod +x terragrunt_linux_amd64
+  - mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+  - terragrunt --version
+
+# Stages.
+# The stages are used to organize the jobs.
+# They run in the order they are defined.
+stages:
+  - plan
+  - apply
+
+# Plan stage.
+#
+# This stage will run `terragrunt run-all plan` to plan all the Terraform
+# configurations in the repository. It will then post a comment on the Merge
+# Request whether the plan succeeded or failed.
+#
+# This stage will run on merge requests and commits to the develop branch
+# and to the main branch.
+plan:
+  stage: plan
+  script:
+    - echo "[Running terragrunt run-all plan]"
+    - terragrunt run-all plan --terragrunt-non-interactive
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: on_success
+    - when: never
+  after_script:
+    - echo "[Commenting on Merge Request]]"
+    - >
+      BOT_MESSAGE="Hello!"
+      curl --request POST \
+        --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        --form "body=$BOT_MESSAGE" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+
+# Apply stage.
+#
+# This stage will run `terragrunt run-all aply` to apply all the Terraform
+# configurations in the repository. This will create all the resources
+# defined in the Terraform configurations.
+#
+# This stage will run on commits to the main branch. This means that
+# the stage will run when merging a Merge Request to the main branch.
+apply:
+  stage: apply
+  script:
+    - echo "[Running terragrunt run-all apply]"
+    - terragrunt run-all apply --terragrunt-non-interactive --auto-approve
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+    - when: never
