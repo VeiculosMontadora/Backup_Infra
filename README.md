@@ -6,24 +6,28 @@ Esse é o repositório de infraestrutura do projeto Veículos Via Montadora. Ele
 
 O projeto utiliza o [Terraform](https://www.terraform.io/) para provisionar recursos na AWS. O Terraform é um software de provisionamento de infraestrutura como código, que permite que você crie, altere e versione a infraestrutura de forma segura e eficiente. O Terraform pode gerenciar provedores de serviços como AWS, Google Cloud, Azure, etc.
 
-<br />
-<img src="./wiki/images/terraform-logo.png" height="100" align="center" />
-<br />
-<br />
-<br />
+<br/>
+<img src="./wiki/images/terraform-logo.png" height="100"/>
+<br/>
+<br/>
+<br/>
 
 Além disso, o projeto também faz uso da ferramenta [Terragrunt](https://terragrunt.gruntwork.io/), que é uma ferramenta de linha de comando para o Terraform que fornece vários níveis de abstração com o objetivo de manter os arquivos de configuração do Terraform DRY (Don't Repeat Yourself). O Terragrunt pode provisionar recursos de vários módulos Terraform, permitindo que você crie uma hierarquia de módulos Terraform e reutilize o código. Além disso, ele gerencia automaticamente o estado do Terraform de forma remota, permitindo que várias pessoas trabalhem no mesmo projeto.
 
-<img src="./wiki/images/terragrunt-logo.png" height="200" align="center" />
-<br />
+<img src="./wiki/images/terragrunt-logo.png" height="200"/>
+<br/>
 
 ## Fluxo de Pipelines
 
 Esse repositório possui pipelines que são responsáveis por provisionar os recursos na AWS. O fluxo de pipelines é o seguinte:
 
-### Merge Request Aberto de `branch_customizada` ➜ `develop` 
+### Merge Request Aberto de `branch_customizada` ➜ `develop`
 
 Ao abrir um Merge Request de uma branch customizada para a branch `develop`, um pipeline será executado para realizar o plano de provisionamento dos recursos na AWS. Esse pipeline é responsável por validar se o código está correto e se os recursos serão provisionados corretamente. Caso o pipeline seja executado com sucesso, o Merge Request pode ser realizado e o código será mesclado com a branch `develop`.
+
+![Terraform Plan Example](./wiki/images/terraform-plan-example.png)
+
+Acima está um exemplo de um trecho do pipeline de planejamento de recursos na AWS, veja que o Terraform está nos dizendo que um repositório ECR será criado, o que é bem intuitivo através dos símbolos de `+` e da cor **verde**. Quando um recurso é removido, o Terraform nos informa com o símbolo de `-` e a cor **vermelha**.
 
 ### Merge Request Aberto de `develop` ➜ `master`
 
@@ -32,3 +36,7 @@ Esse é o mesmo fluxo do Merge Request acima, o planejamento dos recursos na AWS
 ### Merge Request Realizado de `develop` ➜ `master`
 
 Ao realizar o Merge Request de `develop` ➜ `master`, um pipeline será executado para realizar de fato o provisionamento dos recursos na AWS.
+
+![Terraform Apply Example](./wiki/images/terraform-apply-example.png)
+
+Acima está um exemplo de um trecho do pipeline de provisionamento de recursos na AWS, veja que o Terraform está nos dizendo que 1 recurso foi criado com sucesso.
