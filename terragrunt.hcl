@@ -2,6 +2,7 @@
 # These variables can be accessed by child HCL files.
 locals {
   project_name = "veiculos-via-montadora"
+  aws_region   = "us-west-2"
 }
 
 # Generate the AWS provider configuration.
@@ -18,7 +19,7 @@ terraform {
   }
 }
 provider "aws" {
-  region = "us-west-2"
+  region = "${local.aws_region}"
 }
 EOF
 }
@@ -27,16 +28,18 @@ EOF
 # The backend tf file is dynamically generate for each module.
 remote_state {
   backend = "s3"
+
   generate = {
     path      = "backend.tf"
     if_exists = "overwrite"
   }
+
   config = {
     encrypt        = true
     bucket         = "${local.project_name}-terraform-state-bucket"
     key            = "${local.project_name}/${path_relative_to_include()}/terraform.tfstate"
     dynamodb_table = "${local.project_name}-terraform-state-locks-table"
-    region         = "us-west-2"
+    region         = "${local.aws_region}"
   }
 }
 
@@ -59,4 +62,11 @@ terraform {
       "-auto-approve"
     ]
   }
+}
+
+# Pass in the variables we defined in locals to the child HCL files.
+# This makes so that we don't have to repeat the same variables in each child HCL file.
+inputs = {
+  project_name = local.project_name
+  aws_region   = local.aws_region
 }

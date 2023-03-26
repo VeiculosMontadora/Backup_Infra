@@ -4,26 +4,8 @@ variables:
   # The credentials are stored in the GitLab project's variables.
   AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
   AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-  # Terraform and Terragrunt versions.
-  TERRAFORM_VERSION: "1.4.2"
-  TERRAGRUNT_VERSION: "0.45.0"
-
-# Before script.
-# This script runs before all stages and jobs.
-before_script:
-  # Install Terraform.
-  - echo "[Installing Terraform version ${TERRAFORM_VERSION}]"
-  - curl -LJO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-  - unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-  - mv terraform /usr/local/bin/
-  - chmod +x /usr/local/bin/terraform
-  - terraform version
-  # Install Terragrunt.
-  - echo "[Installing Terragrunt version ${TERRAGRUNT_VERSION}]"
-  - curl -LJO https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
-  - chmod +x terragrunt_linux_amd64
-  - mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
-  - terragrunt --version
+  # Terraform Sensible Variables.
+  TERRAFORM_EC2_KEY_PAIR_PUBLIC_KEY: $TERRAFORM_EC2_KEY_PAIR_PUBLIC_KEY
 
 # Stages.
 # The stages are used to organize the jobs.
@@ -38,26 +20,35 @@ stages:
 # configurations in the repository. It will then post a comment on the Merge
 # Request whether the plan succeeded or failed.
 #
-# This stage will run on merge requests and commits to the develop branch
+# This stage will run on merge requests to the develop branch
 # and to the main branch.
 plan:
   stage: plan
+  image: alpine/terragrunt:1.4.2
   script:
+    # Run `terragrunt run-all plan` to plan all the Terraform configurations.
     - echo "[Running terragrunt run-all plan]"
     - terragrunt run-all plan --terragrunt-non-interactive
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
       when: on_success
-    - when: never
   after_script:
-    - echo "[Commenting on Merge Request]]"
-    - >
-      BOT_MESSAGE="Hello!"
+    # Download curl.
+    - echo "[Downloading curl]"
+    - apk add --no-cache curl
+    # Post a comment on the Merge Request with the job result.
+    - echo "[Commenting on Merge Request]"
+    - |
+      JOB_URL="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID"
+      if [ "$CI_JOB_STATUS" == "success" ]; then
+        BOT_MESSAGE=":tada: O plano Terraform foi realizado com sucesso! Veja os [logs do job]($JOB_URL) para saber quais recursos serão provisionados."
+      else
+        BOT_MESSAGE=":boom: O plano Terraform falhou! Veja os [logs do job]($JOB_URL) para saber o que houve de errado."
+      fi
       curl --request POST \
         --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
         --form "body=$BOT_MESSAGE" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
-
 # Apply stage.
 #
 # This stage will run `terragrunt run-all aply` to apply all the Terraform
@@ -66,12 +57,16 @@ plan:
 #
 # This stage will run on commits to the main branch. This means that
 # the stage will run when merging a Merge Request to the main branch.
+# This stage can also be triggered manually when commits are pushed to the develop branch.
 apply:
   stage: apply
+  image: alpine/terragrunt:1.4.2
   script:
+    # Run `terragrunt run-all apply` to apply all the Terraform configurations.
     - echo "[Running terragrunt run-all apply]"
     - terragrunt run-all apply --terragrunt-non-interactive --auto-approve
   rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: on_success
-    - when: never
