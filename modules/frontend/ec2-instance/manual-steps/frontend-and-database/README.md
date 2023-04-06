@@ -9,12 +9,16 @@
 ```yaml
 version: "3.8"
 services:
+  # Frontend.
   frontend:
-    image: <ECR_URL>:<TAG>
+    image: <ECR_URL>:<TAG> # Use a imagem que está no ECR provisionado pelo Terraform aqui.
     ports:
       - "3000:3000"
-  container_name: veiculos-via-montadora-mongodb
-    restart: always
+  # MongoDB (Database).
+  mongodb:
+    image: mongo:6
+    container_name: veiculos-via-montadora-mongodb
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongo_user
       MONGO_INITDB_ROOT_PASSWORD: mongo_password
@@ -22,6 +26,7 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+# Volumes.
 volumes:
   mongodb_data:
     external: false
