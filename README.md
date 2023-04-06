@@ -2,7 +2,7 @@
 
 Esse é o repositório de infraestrutura do projeto Veículos Via Montadora. Ele é responsável por gerenciar a infraestrutura do projeto, ou seja, provisionar os recursos necessários para que o projeto possa ser executado.
 
-![Terraform and Terragrunt](./wiki/images/terraform-and-terragrunt.jpg)
+![Terraform and Terragrunt](./docs/images/terraform-and-terragrunt.jpg)
 
 ## Terraform
 
@@ -30,9 +30,9 @@ A extensão `.tf` é utilizada para arquivos Terraform, enquanto a extensão `.h
 
 ## O que é Provisionado?
 
-Esse repositório é responsável por provisionar toda a infraestrutura cloud que pode ser visualizada no diagrama abaixo, os quadrados em amarelo representam os recursos AWS que são provisionados por esse repositório:
+Esse repositório é responsável por provisionar toda a infraestrutura cloud que pode ser visualizada no diagrama abaixo, Note o quadrado "**Runner**" com o logo do Terraform e do Terragrunt, todas as flechas "Provisiona" que saem dele são responsabilidade desse repositório.
 
-![Diagrama de Arquitetura](./wiki/images/diagrama-arquitetura.png)
+![Diagrama de Arquitetura](./docs/images/architecture-deploy-diagram.png)
 
 ## Fluxo de Pipelines
 
@@ -42,7 +42,7 @@ Esse repositório possui pipelines que são responsáveis por provisionar os rec
 
 Ao abrir um Merge Request de uma branch customizada para a branch `develop`, um pipeline será executado para realizar o plano de provisionamento dos recursos na AWS. Esse pipeline é responsável por validar se o código está correto e se os recursos serão provisionados corretamente. Caso o pipeline seja executado com sucesso, o Merge Request pode ser realizado e o código será mesclado com a branch `develop`.
 
-![Terraform Plan Example](./wiki/images/terraform-plan-example.png)
+![Terraform Plan Example](./docs/images/terraform-plan-example.png)
 
 Acima está um exemplo de um trecho do pipeline de planejamento de recursos na AWS, veja que o Terraform está nos dizendo que um repositório ECR será criado, o que é bem intuitivo através dos símbolos de `+` e da cor **verde**. Quando um recurso é removido, o Terraform nos informa com o símbolo de `-` e a cor **vermelha**.
 
@@ -54,6 +54,6 @@ Esse é o mesmo fluxo do Merge Request acima, o planejamento dos recursos na AWS
 
 Ao realizar o Merge Request de `develop` ➜ `master`, um pipeline será executado para realizar de fato o provisionamento dos recursos na AWS.
 
-![Terraform Apply Example](./wiki/images/terraform-apply-example.png)
+![Terraform Apply Example](./docs/images/terraform-apply-example.png)
 
 Acima está um exemplo de um trecho do pipeline de provisionamento de recursos na AWS, veja que o Terraform está nos dizendo que 1 recurso foi criado com sucesso.

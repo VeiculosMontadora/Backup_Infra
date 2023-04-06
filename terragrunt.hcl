@@ -20,6 +20,14 @@ terraform {
 }
 provider "aws" {
   region = "${local.aws_region}"
+  default_tags {
+    tags = {
+      Project    = "${local.project_name}"
+      Region     = "${local.aws_region}"
+      ManagedBy  = "Terraform/Terragrunt"
+      Repository = "https://tools.ages.pucrs.br/veiculos-via-montadora/infrastructure"
+    }
+  }
 }
 EOF
 }

@@ -5,8 +5,8 @@ variable "lambda" {
     function_name = string
     handler       = optional(string, "index.handler")
     image_uri     = string
-    memory_size   = optional(number, 128)
-    timeout       = optional(number, 3)
+    memory_size   = optional(number, 512)
+    timeout       = optional(number, 10)
   })
   description = "Specifications for the Lambda function."
 }

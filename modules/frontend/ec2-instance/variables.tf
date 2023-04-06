@@ -53,22 +53,11 @@ variable "key_pair" {
   description = "Specifications for the EC2 Key Pair."
 }
 
-# Variables regarding the IAM Roles.
-variable "iam_roles" {
-  type = object({
-    ecr_role = object({
-      name            = string
-      attachment_name = string
-    })
-  })
-  description = "Specifications for the IAM Roles."
-}
-
 # Variables regarding the EC2 Instance.
 variable "ec2" {
   type = object({
     ami           = optional(string)
-    instance_type = optional(string, "t2.micro")
+    instance_type = optional(string, "t3.micro")
     name          = string
   })
   description = "Specifications for the EC2 Instance."
