@@ -40,15 +40,16 @@ plan:
     - echo "[Commenting on Merge Request]"
     - |
       JOB_URL="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID"
-      if [ "$CI_JOB_STATUS" == "success" ]; then
-        BOT_MESSAGE=":tada: O plano Terraform foi realizado com sucesso! Veja os [logs do job]($JOB_URL) para saber quais recursos serão provisionados."
+      if [ "$CI_JOB_STATUS" == "success" ]; thens
+        BOT_MESSAGE=":tada: O plano Terraform foi realizado com sucesso! Veja os [logs do job]($JOB_URL) para saber quais recursos serão provisionados antes de levar a AGES à falência."
       else
-        BOT_MESSAGE=":boom: O plano Terraform falhou! Veja os [logs do job]($JOB_URL) para saber o que houve de errado."
+        BOT_MESSAGE=":boom: Graças ao(à) $CI_COMMIT_AUTHOR, o plano Terraform falhou, te liga, meu! Veja os [logs do job]($JOB_URL) para saber o que houve de errado."
       fi
       curl --request POST \
         --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
         --form "body=$BOT_MESSAGE" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+
 # Apply stage.
 #
 # This stage will run `terragrunt run-all aply` to apply all the Terraform

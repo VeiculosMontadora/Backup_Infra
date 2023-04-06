@@ -30,12 +30,6 @@ inputs = {
     name       = "${local.project_name}-ec2-key-pair"
     public_key = get_env("TERRAFORM_EC2_KEY_PAIR_PUBLIC_KEY", "")
   }
-  iam_roles = {
-    ecr_role = {
-      name            = "${local.project_name}-ecr-ec2-role"
-      attachment_name = "${local.project_name}-ecr-ec2-role-attachment"
-    }
-  }
   ec2 = {
     name = "${local.project_name}-ec2"
   }

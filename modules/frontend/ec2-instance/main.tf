@@ -52,34 +52,6 @@ resource "aws_key_pair" "ec2_key_pair" {
   public_key = var.key_pair.public_key
 }
 
-### IAM ROLES ###
-
-# Creating an IAM role for the EC2 instance to access ECR repositories.
-resource "aws_iam_role" "ec2_role" {
-  name = var.iam_roles.ecr_role.name
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# Adding ECR permissions to the IAM role.
-resource "aws_iam_policy_attachment" "ec2_ecr_policy_attachment" {
-  name       = var.iam_roles.ecr_role.attachment_name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-
-  roles = [aws_iam_role.ec2_role.name]
-}
-
 ### EC2 INSTANCE ###
 
 # Fetching the latest Amazon Linux 2 AMI.
@@ -112,7 +84,6 @@ resource "aws_instance" "ec2" {
   key_name               = aws_key_pair.ec2_key_pair.key_name
   subnet_id              = aws_subnet.subnet.id
   vpc_security_group_ids = [aws_security_group.security_group.id]
-  iam_instance_profile   = aws_iam_role.ec2_role.name
 
   tags = {
     Name = var.ec2.name
